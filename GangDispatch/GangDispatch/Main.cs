@@ -16,8 +16,6 @@ namespace GangDispatch
         Ped sniper;
         bool isSniperSpawned = false;
 
-        float now;
-
         WeaponHash[] UNIT_WEAPONS = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
         int MAX_UNITS;
         float MIN_POLICE_SPAWN_DISTANCE;
@@ -90,7 +88,6 @@ namespace GangDispatch
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
 
-            now = Game.GameTime;
             Tick += OnTick;
         }
 
@@ -141,9 +138,9 @@ namespace GangDispatch
         PedHash GetModelByZone()
         {
             Vector3 myPos = Game.Player.Character.Position;
-            char ZoneName = Function.Call<char>(Hash.GET_NAME_OF_ZONE, myPos.X, myPos.Y, myPos.Z);
+            Vector2 pos = new Vector2(myPos.X, myPos.Y);
 
-            var current_zone = ZoneName.ToString();
+            var current_zone = World.GetStreetName(pos);
 
             if (current_zone == "ARMYB" || current_zone == "ZANCUDO" || current_zone == "HUMLAB")
             {
@@ -207,7 +204,7 @@ namespace GangDispatch
 
             if (sniper != null && sniper.Exists())
             {
-                if (sniper.Position.DistanceTo(Game.Player.Character.Position) > MIN_DISTANCE_FROM_SNIPER_SPAWNS || Game.Player.WantedLevel <= 0 || sniper.IsDead)
+                if (World.GetDistance(sniper.Position, Game.Player.Character.Position) > MIN_DISTANCE_FROM_SNIPER_SPAWNS || Game.Player.WantedLevel <= 0 || sniper.IsDead)
                 {
                     sniper.MarkAsNoLongerNeeded();
                     sniper = null;
@@ -222,15 +219,7 @@ namespace GangDispatch
 
                     if (pos != Vector3.Zero)
                     {
-                        if (now - Game.GameTime < 60f)
-                        {
-                            now = Game.GameTime;
-                        }
-                        else
-                        {
-                            now += 1;
-                            SpawnSniper(pos);
-                        }
+                        SpawnSniper(pos);
                     }
                 }
             }
@@ -242,7 +231,7 @@ namespace GangDispatch
                     var ped = groups[i];
                     if (ped != null && ped.Exists())
                     {
-                        if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || ped.Position.DistanceTo(Game.Player.Character.Position) > 700f)
+                        if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || World.GetDistance(ped.Position, Game.Player.Character.Position) > 700f)
                         {
                             ped.MarkAsNoLongerNeeded();
                             groups.RemoveAt(i);
