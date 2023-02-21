@@ -20,3 +20,4 @@ MAX_UNITS = 8
 MIN_POLICE_SPAWN_DISTANCE = 100f
 ; Minimum distance the player is required to be near a spawnpoint for snipers to spawn.
 MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
+```
