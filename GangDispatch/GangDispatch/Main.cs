@@ -11,14 +11,17 @@ namespace GangDispatch
 
         List<Ped> groups = new List<Ped>();
 
+        ScriptSettings Config;
         Random random = new Random();
         Ped sniper;
         bool isSniperSpawned = false;
 
+        float now;
+
         WeaponHash[] UNIT_WEAPONS = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
-        int MAX_UNITS = 8;
-        float MIN_POLICE_SPAWN_DISTANCE = 100f;
-        float MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f;
+        int MAX_UNITS;
+        float MIN_POLICE_SPAWN_DISTANCE;
+        float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
 
         Vector3[] SniperSpawns =
         {
@@ -82,6 +85,12 @@ namespace GangDispatch
 
         public Main()
         {
+            Config = ScriptSettings.Load("scripts/" + this.Filename + ".ini");
+            MAX_UNITS = Settings.GetValue<int>("SETTINGS", "MAX_UNITS", 8);
+            MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
+            MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
+
+            now = Game.GameTime;
             Tick += OnTick;
         }
 
@@ -133,13 +142,14 @@ namespace GangDispatch
         {
             Vector3 myPos = Game.Player.Character.Position;
             char ZoneName = Function.Call<char>(Hash.GET_NAME_OF_ZONE, myPos.X, myPos.Y, myPos.Z);
+
             var current_zone = ZoneName.ToString();
 
             if (current_zone == "ARMYB" || current_zone == "ZANCUDO" || current_zone == "HUMLAB")
             {
                 return PedHash.Marine03SMY;
             }
-            else if (current_zone == "NOOSE" || current_zone == "AIRP")
+            else if (current_zone == "NOOSE")
             {
                 return PedHash.Swat01SMY;
             }
@@ -155,8 +165,11 @@ namespace GangDispatch
             {
                 return PedHash.CartelGuards01GMM;
             }
+            else
+            {
+                return PedHash.Swat01SMY;
+            }
 
-            return PedHash.Swat01SMY;
         }
 
         void UpdateState()
@@ -194,7 +207,7 @@ namespace GangDispatch
 
             if (sniper != null && sniper.Exists())
             {
-                if (Game.Player.Character.Position.DistanceTo(sniper.Position) > MIN_DISTANCE_FROM_SNIPER_SPAWNS || Game.Player.WantedLevel <= 0 || sniper.IsDead)
+                if (sniper.Position.DistanceTo(Game.Player.Character.Position) > MIN_DISTANCE_FROM_SNIPER_SPAWNS || Game.Player.WantedLevel <= 0 || sniper.IsDead)
                 {
                     sniper.MarkAsNoLongerNeeded();
                     sniper = null;
@@ -209,7 +222,15 @@ namespace GangDispatch
 
                     if (pos != Vector3.Zero)
                     {
-                        SpawnSniper(pos);
+                        if (now - Game.GameTime < 60f)
+                        {
+                            now = Game.GameTime;
+                        }
+                        else
+                        {
+                            now += 1;
+                            SpawnSniper(pos);
+                        }
                     }
                 }
             }
@@ -221,7 +242,7 @@ namespace GangDispatch
                     var ped = groups[i];
                     if (ped != null && ped.Exists())
                     {
-                        if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || Game.Player.Character.Position.DistanceTo(ped.Position) > 1000f)
+                        if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || ped.Position.DistanceTo(Game.Player.Character.Position) > 700f)
                         {
                             ped.MarkAsNoLongerNeeded();
                             groups.RemoveAt(i);
