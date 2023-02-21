@@ -128,9 +128,10 @@ namespace GangDispatch
 
         Vector3 FindAvailableSpawnPoint()
         {
+            bool isInInterior = Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
             Vector3[] randomPos = { Game.Player.Character.ForwardVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.ForwardVector * -MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * -MIN_POLICE_SPAWN_DISTANCE };
             Vector3 newPos = randomPos[random.Next(0, randomPos.Length)];
-            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos);
+            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, !isInInterior);
 
             return pos;
         }
@@ -186,7 +187,6 @@ namespace GangDispatch
         {
             if (Game.Player.WantedLevel >= 3 && canSpawn())
             {
-                // Function.Call<bool>(Hash.IS_INTERIOR_SCENE)
                 bool IS_SEEN_BY_COPS = Function.Call<bool>(Hash.IS_WANTED_AND_HAS_BEEN_SEEN_BY_COPS, Game.Player);
                 if (Game.Player.Character.IsOnFoot && IS_SEEN_BY_COPS)
                 {
