@@ -128,17 +128,10 @@ namespace GangDispatch
 
         Vector3 FindAvailableSpawnPoint()
         {
-            bool isInInterior = Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
-            bool spawnOnSidewalk = true;
-
-            if (isInInterior)
-            {
-                spawnOnSidewalk = false;
-            }
-
+            // Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
             Vector3[] randomPos = { Game.Player.Character.ForwardVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.ForwardVector * -MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * -MIN_POLICE_SPAWN_DISTANCE };
             Vector3 newPos = randomPos[random.Next(0, randomPos.Length)];
-            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, spawnOnSidewalk);
+            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos);
 
             return pos;
         }
@@ -150,11 +143,11 @@ namespace GangDispatch
 
             var current_zone = World.GetStreetName(pos);
 
-            if (current_zone == "ARMYB" || current_zone == "ZANCUDO" || current_zone == "HUMLAB")
+            if (current_zone == "ARMYB" || current_zone == "ZANCUDO")
             {
                 return PedHash.Marine03SMY;
             }
-            else if (current_zone == "NOOSE")
+            else if (current_zone == "NOOSE" || current_zone == "HUMLAB")
             {
                 return PedHash.Swat01SMY;
             }
