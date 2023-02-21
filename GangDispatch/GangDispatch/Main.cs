@@ -129,9 +129,16 @@ namespace GangDispatch
         Vector3 FindAvailableSpawnPoint()
         {
             bool isInInterior = Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
+            bool spawnOnSidewalk = true;
+
+            if (isInInterior)
+            {
+                spawnOnSidewalk = false;
+            }
+
             Vector3[] randomPos = { Game.Player.Character.ForwardVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.ForwardVector * -MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * -MIN_POLICE_SPAWN_DISTANCE };
             Vector3 newPos = randomPos[random.Next(0, randomPos.Length)];
-            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, !isInInterior);
+            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, spawnOnSidewalk);
 
             return pos;
         }
