@@ -17,6 +17,8 @@ Adds onfoot cops and some snipers at predefined locations
 [SETTINGS]
 ; Amount of onfoot units the game will spawn before no more
 MAX_UNITS = 8
+; Minimum WantedLevel required for onfoot cops to start spawning.
+MAX_WANTED_LEVEL = 3
 ; Minimum distance police units can spawn from the player
 MIN_POLICE_SPAWN_DISTANCE = 100f
 ; Minimum distance the player is required to be near a spawnpoint for snipers to spawn.
