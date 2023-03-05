@@ -76,7 +76,9 @@ namespace GangDispatch
             Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, wpn, 9999, false, true);
             Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 2, 0, true);
             Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46); // BF_AlwaysFight
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 22, true); // drag injured *comrades* to safety
 
             groups.Add(ped);
 
