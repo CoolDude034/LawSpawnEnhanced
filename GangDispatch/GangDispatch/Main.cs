@@ -17,7 +17,6 @@ namespace GangDispatch
         bool isSniperSpawned = false;
 
         // Models
-        Model assault_member;
         Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
 
         // Private variables
@@ -25,6 +24,7 @@ namespace GangDispatch
         int MAX_WANTED_LEVEL;
         float MIN_POLICE_SPAWN_DISTANCE;
         float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
+        float MIN_POLICE_DESPAWN_RANGE;
 
         Vector3[] SniperSpawns =
         {
@@ -117,8 +117,7 @@ namespace GangDispatch
             MAX_WANTED_LEVEL = Settings.GetValue<int>("SETTINGS", "MAX_WANTED_LEVEL", 3);
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
-
-            assault_member = Settings.GetValue<Model>("MODELS", "ASSAULT_MEMBER", PedHash.Swat01SMY);
+            MIN_POLICE_DESPAWN_RANGE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_DESPAWN_RANGE", 600f);
 
             Tick += OnTick;
             Aborted += ScriptCleanup;
@@ -190,7 +189,7 @@ namespace GangDispatch
                 return PedHash.Blackops02SMY;
             }
 
-            return assault_member;
+            return PedHash.Swat01SMY;
         }
 
         void UpdateState()
@@ -222,6 +221,47 @@ namespace GangDispatch
             }
         }
 
+        void ClearAllAssaultingMembers(bool isForced)
+        {
+            if (groups.Count > 0)
+            {
+                for (int i = groups.Count - 1; i > -1; i--)
+                {
+                    var ped = groups[i];
+                    if (ped != null && ped.Exists())
+                    {
+                        if (isForced)
+                        {
+                            ped.MarkAsNoLongerNeeded();
+                            groups.RemoveAt(i);
+                        }
+                        else
+                        {
+                            if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || World.GetDistance(ped.Position, Game.Player.Character.Position) > MIN_POLICE_DESPAWN_RANGE)
+                            {
+                                ped.MarkAsNoLongerNeeded();
+                                groups.RemoveAt(i);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+        void RespawnSnipers()
+        {
+            if (Game.Player.WantedLevel >= 4 && isInSniperLocation())
+            {
+                var pos = FindNearestSniperSpawn();
+
+                if (pos != Vector3.Zero)
+                {
+                    SpawnSniper(pos);
+                }
+            }
+        }
+
         void UpdateExistingMembers()
         {
 
@@ -236,33 +276,10 @@ namespace GangDispatch
             }
             else
             {
-                if (Game.Player.WantedLevel >= 4 && isInSniperLocation())
-                {
-                    var pos = FindNearestSniperSpawn();
-
-                    if (pos != Vector3.Zero)
-                    {
-                        SpawnSniper(pos);
-                    }
-                }
+                RespawnSnipers();
             }
 
-            if (groups.Count > 0)
-            {
-                for (int i = groups.Count - 1; i > -1; i--)
-                {
-                    var ped = groups[i];
-                    if (ped != null && ped.Exists())
-                    {
-                        if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || World.GetDistance(ped.Position, Game.Player.Character.Position) > 700f)
-                        {
-                            ped.MarkAsNoLongerNeeded();
-                            groups.RemoveAt(i);
-                        }
-                    }
-                }
-
-            }
+            ClearAllAssaultingMembers(false);
         }
 
         void OnTick(object sender, EventArgs e)
@@ -283,20 +300,7 @@ namespace GangDispatch
                 isSniperSpawned = false;
             }
 
-            if (groups.Count > 0)
-            {
-                for (int i = groups.Count - 1; i > -1; i--)
-                {
-                    var ped = groups[i];
-                    if (ped != null && ped.Exists())
-                    {
-                        ped.MarkAsNoLongerNeeded();
-                        groups.RemoveAt(i);
-                    }
-                }
-
-            }
-
+            ClearAllAssaultingMembers(true);
             ToggleDispatchServices(true);
         }
 
