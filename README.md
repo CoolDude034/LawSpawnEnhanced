@@ -1,5 +1,7 @@
 # LawSpawnEnhanced
-Adds onfoot cops and some snipers at predefined locations
+Extends the spawning of police units instead always coming from vehicles only. Disables certain dispatches to make that happen, so it's incompatible with other
+script-based dispatch mods (or even missions but im sure missions utilize FakeWantedLevel), but can be used with things that only modify ingame files.
+Cops spawned trough scenarios or popcycle aren't touched.
 
 # Features:
 * Standard Dispatch disabled while onfoot, and re-enabled when inside a vehicle (not compatible with script-based dispatch mods or it would work if it doesn't call ENABLE_DISPATCH_SERVICE native, but dispatch.meta edits work fine)
