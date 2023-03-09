@@ -1,6 +1,5 @@
 C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\bin\Debug\GangDispatch.dll
 C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\bin\Debug\GangDispatch.pdb
-C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\bin\Debug\ScriptHookVDotNet3.dll
 C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\obj\Debug\GangDispatch.csproj.AssemblyReference.cache
 C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\obj\Debug\GangDispatch.csproj.CoreCompileInputs.cache
 C:\Users\LocalServer\source\repos\GangDispatch\GangDispatch\obj\Debug\GangDispatch.csproj.CopyComplete

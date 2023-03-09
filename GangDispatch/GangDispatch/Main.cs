@@ -16,9 +16,11 @@ namespace GangDispatch
         Ped sniper;
         bool isSniperSpawned = false;
 
-        float timer;
+        // Models
+        Model assault_member;
+        Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
 
-        WeaponHash[] UNIT_WEAPONS = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
+        // Private variables
         int MAX_UNITS;
         int MAX_WANTED_LEVEL;
         float MIN_POLICE_SPAWN_DISTANCE;
@@ -67,14 +69,16 @@ namespace GangDispatch
             new Vector3(360.449371f, -967.0417f, 34.6899643f),
         };
 
-        Ped SpawnUnit(Model model, Vector3 pos, Model wpn)
+        Ped SpawnUnit(Vector3 pos)
         {
-            var ped = World.CreatePed(model, pos);
+            var ped = World.CreatePed(GetModelByZone(), pos);
             ped.AlwaysKeepTask = true;
             ped.Task.FightAgainst(Game.Player.Character);
 
-            Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, wpn, 9999, false, true);
-            Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 2, 0, true);
+            var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
+            ped.Weapons.Give(weapon, 9999, true, true);
+
+            Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
             Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
@@ -85,6 +89,7 @@ namespace GangDispatch
             return ped;
         }
 
+        // Sniper units are hard-coded to s_m_y_swat_01 model, this is because they spawn at pre-defined locations.
         void SpawnSniper(Vector3 pos)
         {
             if (isSniperSpawned) return;
@@ -93,12 +98,13 @@ namespace GangDispatch
             sniper.AlwaysKeepTask = true;
             sniper.Task.FightAgainst(Game.Player.Character);
 
-            Function.Call(Hash.GIVE_WEAPON_TO_PED, sniper, WeaponHash.SniperRifle, 9999, true, true);
+            sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
+
             Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
-            Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 2, 0, true);
+            Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // chase target onfoot
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // drag injured *comrades* to safety
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
+            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
 
 
             isSniperSpawned = true;
@@ -111,6 +117,8 @@ namespace GangDispatch
             MAX_WANTED_LEVEL = Settings.GetValue<int>("SETTINGS", "MAX_WANTED_LEVEL", 3);
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
+
+            assault_member = Settings.GetValue<Model>("MODELS", "ASSAULT_MEMBER", PedHash.Swat01SMY);
 
             Tick += OnTick;
             Aborted += ScriptCleanup;
@@ -154,34 +162,35 @@ namespace GangDispatch
         Vector3 FindAvailableSpawnPoint()
         {
             // Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
+            bool isInsideInterior = Function.Call<bool>(Hash.IS_INTERIOR_SCENE);
             Vector3[] randomPos = { Game.Player.Character.ForwardVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.ForwardVector * -MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * -MIN_POLICE_SPAWN_DISTANCE };
             Vector3 newPos = randomPos[random.Next(0, randomPos.Length)];
-            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos);
+            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, sidewalk: !isInsideInterior);
 
             return pos;
         }
 
         PedHash GetModelByZone()
         {
-            Vector3 myPos = Game.Player.Character.Position;
-            //Vector2 pos = new Vector2(myPos.X, myPos.Y);
-            char zoneId = Function.Call<char>(Hash.GET_NAME_OF_ZONE, myPos.X, myPos.Y, myPos.Z);
-            var current_zone = zoneId.ToString();
-
-            if (current_zone == "Army" || current_zone == "Army1")
+            if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "ArmyB") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Zancudo"))
             {
                 return PedHash.Marine03SMY;
             }
-            else if (current_zone == "ZElys" || current_zone == "ZElys1")
+            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Noose") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "AirP") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Jail") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "PBOX"))
+            {
+                return PedHash.Swat01SMY;
+            }
+            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "IsHeistZone"))
+            {
+                // i am pretty sure Cayo Perico has scenario spawns for peds, not footPaths.
+                return PedHash.CartelGuards01GMM;
+            }
+            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Elysian"))
             {
                 return PedHash.Blackops02SMY;
             }
-            else if (current_zone == "PrLog")
-            {
-                return PedHash.Snowcop01SMM;
-            }
 
-            return PedHash.Swat01SMY;
+            return assault_member;
         }
 
         void UpdateState()
@@ -207,7 +216,7 @@ namespace GangDispatch
                     var pos = FindAvailableSpawnPoint();
                     if (pos != Vector3.Zero)
                     {
-                        SpawnUnit(GetModelByZone(), pos, UNIT_WEAPONS[random.Next(0, UNIT_WEAPONS.Length)]);
+                        SpawnUnit(pos);
                     }
                 }
             }
