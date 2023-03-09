@@ -16,16 +16,19 @@ Cops spawned trough scenarios or popcycle aren't touched.
 
 ```
 [SETTINGS]
+
 ; Amount of onfoot units the game will spawn before no more
 MAX_UNITS = 8
+
 ; Minimum WantedLevel required for onfoot cops to start spawning.
 MAX_WANTED_LEVEL = 3
+
 ; Minimum distance police units can spawn from the player
 MIN_POLICE_SPAWN_DISTANCE = 100f
+
 ; Minimum distance the player is required to be near a spawnpoint for snipers to spawn.
 MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
 
-[MODELS]
-ASSAULT_MEMBER = "s_m_y_swat_01"
-; Set the model that assault units will use (note, certain zones will overwrite them)
+; Min distance from player the police will despawn.
+MIN_POLICE_DESPAWN_RANGE = 600f
 ```
