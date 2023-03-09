@@ -9,6 +9,7 @@ Cops spawned trough scenarios or popcycle aren't touched.
 * Certain locations have vantage points for snipers to spawn from (only 1 sniper can exist at a time)
 * Diverse arsenal for SWAT units onfoot.
 * DT_SwatHelicopter excluded, you will see units being dropped off from the air incase ground units can't reach you.
+* Spawned units will utilize tactics like chasing you down and carrying their wounded allies to safety.
 * You can configure some values of the mod by creating a .ini file with the same name as the DLL. To know which values you can use, take a look underneath me.
 
 # Configuration:
