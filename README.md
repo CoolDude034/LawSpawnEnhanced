@@ -1,4 +1,4 @@
-# OnfootCops
+# LawSpawnEnhanced
 Adds onfoot cops and some snipers at predefined locations
 
 # Features:
@@ -23,4 +23,8 @@ MAX_WANTED_LEVEL = 3
 MIN_POLICE_SPAWN_DISTANCE = 100f
 ; Minimum distance the player is required to be near a spawnpoint for snipers to spawn.
 MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
+
+[MODELS]
+ASSAULT_MEMBER = "s_m_y_swat_01"
+; Set the model that assault units will use (note, certain zones will overwrite them)
 ```
