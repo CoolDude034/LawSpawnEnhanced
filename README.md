@@ -35,6 +35,6 @@ MIN_POLICE_DESPAWN_RANGE = 600f
 ; Time it takes before spawning another cop
 TIME_BETWEEN_SPAWNS = 15f
 
-; Enable standard dispatch (maybe might make this compatible with other script-based dispatch mods?)
+; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
 ```
