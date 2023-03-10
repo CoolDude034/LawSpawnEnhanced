@@ -16,6 +16,8 @@ namespace GangDispatch
         Ped sniper;
         bool isSniperSpawned = false;
 
+        float count = 2f;
+
         // Models
         Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
 
@@ -25,6 +27,8 @@ namespace GangDispatch
         float MIN_POLICE_SPAWN_DISTANCE;
         float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
         float MIN_POLICE_DESPAWN_RANGE;
+        float TIME_BETWEEN_SPAWNS;
+        bool ENABLE_STANDARD_SPAWNS;
 
         Vector3[] SniperSpawns =
         {
@@ -118,6 +122,10 @@ namespace GangDispatch
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
             MIN_POLICE_DESPAWN_RANGE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_DESPAWN_RANGE", 600f);
+            TIME_BETWEEN_SPAWNS = Settings.GetValue<float>("SETTINGS", "TIME_BETWEEN_SPAWNS", 15f);
+            ENABLE_STANDARD_SPAWNS = Settings.GetValue<bool>("SETTINGS", "ENABLE_STANDARD_SPAWNS", false);
+
+            count = TIME_BETWEEN_SPAWNS;
 
             Tick += OnTick;
             Aborted += ScriptCleanup;
@@ -194,6 +202,7 @@ namespace GangDispatch
 
         void UpdateState()
         {
+            if (ENABLE_STANDARD_SPAWNS) return;
             switch (Game.Player.Character.IsOnFoot)
             {
                 case true:
@@ -205,6 +214,15 @@ namespace GangDispatch
             }
         }
 
+        void SpawnGroup()
+        {
+            var pos = FindAvailableSpawnPoint();
+            if (pos != Vector3.Zero)
+            {
+                SpawnUnit(pos);
+            }
+        }
+
         void UpdateGroups()
         {
             if (Game.Player.WantedLevel >= MAX_WANTED_LEVEL && canSpawn())
@@ -212,10 +230,14 @@ namespace GangDispatch
                 bool IS_SEEN_BY_COPS = Function.Call<bool>(Hash.IS_WANTED_AND_HAS_BEEN_SEEN_BY_COPS, Game.Player);
                 if (Game.Player.Character.IsOnFoot && IS_SEEN_BY_COPS)
                 {
-                    var pos = FindAvailableSpawnPoint();
-                    if (pos != Vector3.Zero)
+                    if (count <= 0)
                     {
-                        SpawnUnit(pos);
+                        SpawnGroup();
+                        count = TIME_BETWEEN_SPAWNS;
+                    }
+                    else
+                    {
+                        count -= Game.GameTime;
                     }
                 }
             }
