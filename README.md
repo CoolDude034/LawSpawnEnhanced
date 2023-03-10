@@ -31,4 +31,10 @@ MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
 
 ; Min distance from player the police will despawn.
 MIN_POLICE_DESPAWN_RANGE = 600f
+
+; Time it takes before spawning another cop
+TIME_BETWEEN_SPAWNS = 15f
+
+; Enable standard dispatch (maybe might make this compatible with other script-based dispatch mods?)
+ENABLE_STANDARD_SPAWNS = false
 ```
