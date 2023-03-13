@@ -29,6 +29,10 @@ namespace GangDispatch
         float MIN_POLICE_DESPAWN_RANGE;
         float TIME_BETWEEN_SPAWNS;
         bool ENABLE_STANDARD_SPAWNS;
+        PedHash COP_MODEL_OVERRIDE;
+        PedHash COP_COUNTRY_MODEL_OVERRIDE;
+        PedHash ARMY_MODEL_OVERRIDE;
+        PedHash SNIPER_MODEL_OVERRIDE;
 
         Vector3[] SniperSpawns =
         {
@@ -76,7 +80,6 @@ namespace GangDispatch
         Ped SpawnUnit(Vector3 pos)
         {
             var ped = World.CreatePed(GetModelByZone(), pos);
-            ped.AlwaysKeepTask = true;
             ped.Task.FightAgainst(Game.Player.Character);
 
             var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
@@ -93,12 +96,11 @@ namespace GangDispatch
             return ped;
         }
 
-        // Sniper units are hard-coded to s_m_y_swat_01 model, this is because they spawn at pre-defined locations.
         void SpawnSniper(Vector3 pos)
         {
             if (isSniperSpawned) return;
 
-            sniper = World.CreatePed(PedHash.Swat01SMY, pos);
+            sniper = World.CreatePed(SNIPER_MODEL_OVERRIDE, pos);
             sniper.AlwaysKeepTask = true;
             sniper.Task.FightAgainst(Game.Player.Character);
 
@@ -107,6 +109,7 @@ namespace GangDispatch
             Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
             Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
+            // We add this because ped can have certain behavior flags assigned by default defined in combatbehaviours.meta
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
             Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
 
@@ -124,6 +127,12 @@ namespace GangDispatch
             MIN_POLICE_DESPAWN_RANGE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_DESPAWN_RANGE", 600f);
             TIME_BETWEEN_SPAWNS = Settings.GetValue<float>("SETTINGS", "TIME_BETWEEN_SPAWNS", 15f);
             ENABLE_STANDARD_SPAWNS = Settings.GetValue<bool>("SETTINGS", "ENABLE_STANDARD_SPAWNS", false);
+            // Custom model overrides, prob wants a pedhash (int) or something than a string/modelname???
+            // PedHash is cursed as fuck
+            COP_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "COP_MODEL_OVERRIDE", PedHash.Swat01SMY);
+            ARMY_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "ARMY_MODEL_OVERRIDE", PedHash.Marine03SMY);
+            SNIPER_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "SNIPER_MODEL_OVERRIDE", PedHash.Swat01SMY);
+            COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", PedHash.Swat01SMY);
 
             count = TIME_BETWEEN_SPAWNS;
 
@@ -143,8 +152,9 @@ namespace GangDispatch
 
         bool isInSniperLocation()
         {
-            foreach (Vector3 pos in SniperSpawns)
+            for (int i = 1; i < SniperSpawns.Length; i++)
             {
+                var pos = SniperSpawns[i];
                 if (Game.Player.Character.Position.DistanceTo(pos) < MIN_DISTANCE_FROM_SNIPER_SPAWNS)
                 {
                     return true;
@@ -179,25 +189,30 @@ namespace GangDispatch
 
         PedHash GetModelByZone()
         {
-            if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "ArmyB") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Zancudo"))
+            if (GetZoneType() == "ARMY")
             {
-                return PedHash.Marine03SMY;
+                return ARMY_MODEL_OVERRIDE;
             }
-            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Noose") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "AirP") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Jail") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "PBOX"))
+            else if (GetZoneType() == "DESERT")
             {
-                return PedHash.Swat01SMY;
-            }
-            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "IsHeistZone"))
-            {
-                // i am pretty sure Cayo Perico has scenario spawns for peds, not footPaths.
-                return PedHash.CartelGuards01GMM;
-            }
-            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Elysian"))
-            {
-                return PedHash.Blackops02SMY;
+                return COP_COUNTRY_MODEL_OVERRIDE;
             }
 
-            return PedHash.Swat01SMY;
+            return COP_MODEL_OVERRIDE;
+        }
+
+        string GetZoneType()
+        {
+            if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "ArmyB") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Zancudo"))
+            {
+                return "ARMY";
+            }
+            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Desrt") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Alamo") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Lago") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Slab") || Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "Paleto"))
+            {
+                return "DESERT";
+            }
+
+            return "GENERAL";
         }
 
         void UpdateState()
