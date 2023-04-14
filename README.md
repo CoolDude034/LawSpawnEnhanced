@@ -32,9 +32,25 @@ MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
 ; Min distance from player the police will despawn.
 MIN_POLICE_DESPAWN_RANGE = 600f
 
-; Time it takes before spawning another cop
-TIME_BETWEEN_SPAWNS = 15f
+; Time it takes before spawning another cop (was float before, now an int)
+TIME_BETWEEN_SPAWNS = 6000
 
 ; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
+
+; Force assaulting cops to engage in combat instead of going to your position
+ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE = true
+
+; Distance around player's current location cops will search
+COP_SEARCH_DISTANCE = 400f
+
+; FORCE MODELS
+; You can force peds spawned by the mod to use a specific model, good for addon peds
+
+; City Cops
+COP_MODEL_OVERRIDE = "s_m_y_swat_01"
+; Countryside Cops
+COP_COUNTRY_MODEL_OVERRIDE = "s_m_y_swat_01"
+; Soldiers
+ARMY_MODEL_OVERRIDE = "s_m_y_marine_03"
 ```
