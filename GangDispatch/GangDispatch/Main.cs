@@ -16,23 +16,22 @@ namespace GangDispatch
         Ped sniper;
         bool isSniperSpawned = false;
 
-        float count = 2f;
-
         // Models
         Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
 
         // Private variables
         int MAX_UNITS;
         int MAX_WANTED_LEVEL;
+        int TIME_BETWEEN_SPAWNS; // now a intvalue
         float MIN_POLICE_SPAWN_DISTANCE;
         float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
         float MIN_POLICE_DESPAWN_RANGE;
-        float TIME_BETWEEN_SPAWNS;
+        float COP_SEARCH_DISTANCE;
         bool ENABLE_STANDARD_SPAWNS;
-        PedHash COP_MODEL_OVERRIDE;
-        PedHash COP_COUNTRY_MODEL_OVERRIDE;
-        PedHash ARMY_MODEL_OVERRIDE;
-        PedHash SNIPER_MODEL_OVERRIDE;
+        bool ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE;
+        string COP_MODEL_OVERRIDE;
+        string COP_COUNTRY_MODEL_OVERRIDE;
+        string ARMY_MODEL_OVERRIDE;
 
         Vector3[] SniperSpawns =
         {
@@ -75,46 +74,81 @@ namespace GangDispatch
             // Mission Row
             new Vector3(352.3809f, -967.0717f, 34.6470642f),
             new Vector3(360.449371f, -967.0417f, 34.6899643f),
+            // idk where this is
+            new Vector3(-51.0848846f, 188.77771f, 140.179108f),
+            new Vector3(177.156265f, 1233.22241f, 233.833328f),
+            // Fort Zancudo
+            new Vector3(-1720.31677f, 3152.416f, 50.93837f),
+            // Paleto Bay
+            new Vector3(-176.23349f, 6337.69434f, 35.10514f),
+            new Vector3(-67.0642548f, 6441.175f, 39.37759f),
+            new Vector3(-93.05518f, 6498.224f, 40.3665581f),
+            new Vector3(-55.56639f, 6503.51074f, 38.4160538f),
+            new Vector3(-66.81067f, 6268.21045f, 46.7211342f),
+            new Vector3(-439.295624f, 6015.17871f, 35.6452179f), // camper
         };
 
-        Ped SpawnUnit(Vector3 pos)
+        // There was no reason for this to return anything, so just return void
+        void SpawnUnit(Vector3 pos)
         {
-            var ped = World.CreatePed(GetModelByZone(), pos);
-            ped.Task.FightAgainst(Game.Player.Character);
+            var model = GetModelByZone();
+            if (!model.IsLoaded)
+            {
+                model.Request();
+            }
 
-            var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
-            ped.Weapons.Give(weapon, 9999, true, true);
+            if (model.IsInCdImage && model.IsValid)
+            {
+                var ped = World.CreatePed(model, pos);
+                if (ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE)
+                {
+                    ped.Task.FightAgainst(Game.Player.Character);
+                }
+                else
+                {
+                    // Search the player's current location.
+                    ped.Task.GoStraightTo(Game.Player.Character.Position.Around(COP_SEARCH_DISTANCE));
+                }
 
-            Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
-            Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 22, true); // drag injured *comrades* to safety
+                var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
+                ped.Weapons.Give(weapon, 9999, true, true);
 
-            groups.Add(ped);
+                Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
+                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2); // stationary
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 22, true); // drag injured *comrades* to safety
 
-            return ped;
+                groups.Add(ped);
+            }
         }
 
         void SpawnSniper(Vector3 pos)
         {
             if (isSniperSpawned) return;
 
-            sniper = World.CreatePed(SNIPER_MODEL_OVERRIDE, pos);
-            sniper.AlwaysKeepTask = true;
-            sniper.Task.FightAgainst(Game.Player.Character);
+            var model = GetModelByZone();
+            if (!model.IsLoaded)
+            {
+                model.Request();
+            }
 
-            sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
+            if (model.IsInCdImage && model.IsValid)
+            {
+                sniper = World.CreatePed(model, pos);
+                sniper.AlwaysKeepTask = true;
+                sniper.Task.FightAgainst(Game.Player.Character);
 
-            Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
-            Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
-            // We add this because ped can have certain behavior flags assigned by default defined in combatbehaviours.meta
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
-            Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
+                sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
 
+                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
+                Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
 
-            isSniperSpawned = true;
+                isSniperSpawned = true;
+            }
         }
 
         public Main()
@@ -125,16 +159,15 @@ namespace GangDispatch
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
             MIN_POLICE_DESPAWN_RANGE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_DESPAWN_RANGE", 600f);
-            TIME_BETWEEN_SPAWNS = Settings.GetValue<float>("SETTINGS", "TIME_BETWEEN_SPAWNS", 15f);
+            TIME_BETWEEN_SPAWNS = Settings.GetValue<int>("SETTINGS", "TIME_BETWEEN_SPAWNS", 6000);
+            COP_SEARCH_DISTANCE = Settings.GetValue<float>("SETTINGS", "COP_SEARCH_DISTANCE", 400f);
             ENABLE_STANDARD_SPAWNS = Settings.GetValue<bool>("SETTINGS", "ENABLE_STANDARD_SPAWNS", false);
-            // Custom model overrides, prob wants a pedhash (int) or something than a string/modelname???
-            // PedHash is cursed as fuck
-            COP_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "COP_MODEL_OVERRIDE", PedHash.Swat01SMY);
-            ARMY_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "ARMY_MODEL_OVERRIDE", PedHash.Marine03SMY);
-            SNIPER_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "SNIPER_MODEL_OVERRIDE", PedHash.Swat01SMY);
-            COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<PedHash>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", PedHash.Swat01SMY);
-
-            count = TIME_BETWEEN_SPAWNS;
+            ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE = Settings.GetValue<bool>("SETTINGS", "ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE", true);
+            // Updated code to look for modelnames instead of pedhashes, note this means that you need to update your config otherwise it will fallback to swat
+            // civmale/civfemale pedtypes can cause in-fighting between them
+            COP_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_MODEL_OVERRIDE", "s_m_y_swat_01");
+            ARMY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "ARMY_MODEL_OVERRIDE", "s_m_y_marine_03");
+            COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", "s_m_y_swat_01");
 
             Tick += OnTick;
             Aborted += ScriptCleanup;
@@ -187,18 +220,18 @@ namespace GangDispatch
             return pos;
         }
 
-        PedHash GetModelByZone()
+        Model GetModelByZone()
         {
             if (GetZoneType() == "ARMY")
             {
-                return ARMY_MODEL_OVERRIDE;
+                return new Model(ARMY_MODEL_OVERRIDE);
             }
             else if (GetZoneType() == "DESERT")
             {
-                return COP_COUNTRY_MODEL_OVERRIDE;
+                return new Model(COP_COUNTRY_MODEL_OVERRIDE);
             }
 
-            return COP_MODEL_OVERRIDE;
+            return new Model(COP_MODEL_OVERRIDE);
         }
 
         string GetZoneType()
@@ -245,20 +278,15 @@ namespace GangDispatch
                 bool IS_SEEN_BY_COPS = Function.Call<bool>(Hash.IS_WANTED_AND_HAS_BEEN_SEEN_BY_COPS, Game.Player);
                 if (Game.Player.Character.IsOnFoot && IS_SEEN_BY_COPS)
                 {
-                    if (count <= 0)
+                    if (Game.GameTime % TIME_BETWEEN_SPAWNS == 0)
                     {
                         SpawnGroup();
-                        count = TIME_BETWEEN_SPAWNS;
-                    }
-                    else
-                    {
-                        count -= Game.GameTime;
                     }
                 }
             }
         }
 
-        void ClearAllAssaultingMembers(bool isForced)
+        void ClearAllAssaultingMembers(bool isForced = false)
         {
             if (groups.Count > 0)
             {
@@ -292,7 +320,7 @@ namespace GangDispatch
             {
                 var pos = FindNearestSniperSpawn();
 
-                if (pos != Vector3.Zero)
+                if (pos != Vector3.Zero && Game.GameTime % TIME_BETWEEN_SPAWNS == 0)
                 {
                     SpawnSniper(pos);
                 }
@@ -316,7 +344,7 @@ namespace GangDispatch
                 RespawnSnipers();
             }
 
-            ClearAllAssaultingMembers(false);
+            ClearAllAssaultingMembers();
         }
 
         void OnTick(object sender, EventArgs e)
