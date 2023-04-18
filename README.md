@@ -33,7 +33,7 @@ MIN_DISTANCE_FROM_SNIPER_SPAWNS = 500f
 MIN_POLICE_DESPAWN_RANGE = 600f
 
 ; Time it takes before spawning another cop (was float before, now an int)
-TIME_BETWEEN_SPAWNS = 6000
+TIME_BETWEEN_SPAWNS = 60
 
 ; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
