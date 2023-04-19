@@ -159,7 +159,7 @@ namespace GangDispatch
             MIN_POLICE_SPAWN_DISTANCE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_SPAWN_DISTANCE", 100f);
             MIN_DISTANCE_FROM_SNIPER_SPAWNS = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_SNIPER_SPAWNS", 500f);
             MIN_POLICE_DESPAWN_RANGE = Settings.GetValue<float>("SETTINGS", "MIN_POLICE_DESPAWN_RANGE", 600f);
-            TIME_BETWEEN_SPAWNS = Settings.GetValue<int>("SETTINGS", "TIME_BETWEEN_SPAWNS", 6000);
+            TIME_BETWEEN_SPAWNS = Settings.GetValue<int>("SETTINGS", "TIME_BETWEEN_SPAWNS", 80);
             COP_SEARCH_DISTANCE = Settings.GetValue<float>("SETTINGS", "COP_SEARCH_DISTANCE", 400f);
             ENABLE_STANDARD_SPAWNS = Settings.GetValue<bool>("SETTINGS", "ENABLE_STANDARD_SPAWNS", false);
             ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE = Settings.GetValue<bool>("SETTINGS", "ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE", true);
@@ -365,7 +365,7 @@ namespace GangDispatch
                 isSniperSpawned = false;
             }
 
-            ClearAllAssaultingMembers(true);
+            ClearAllAssaultingMembers(isForced: true);
             ToggleDispatchServices(true);
         }
 
