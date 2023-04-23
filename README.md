@@ -46,6 +46,8 @@ COP_SEARCH_DISTANCE = 400f
 
 ; FORCE MODELS
 ; You can force peds spawned by the mod to use a specific model, good for addon peds
+; If you want to change specific models per wanted level, set ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES to true in your .ini file.
+; Values you can change: COP_WL1, COP_WL2, COP_WL3
 
 ; City Cops
 COP_MODEL_OVERRIDE = "s_m_y_swat_01"
