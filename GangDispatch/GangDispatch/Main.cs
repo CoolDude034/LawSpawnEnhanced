@@ -288,14 +288,21 @@ namespace GangDispatch
         void UpdateState()
         {
             if (ENABLE_STANDARD_SPAWNS) return;
-            switch (Game.Player.Character.IsOnFoot)
+            if (Game.Player.WantedLevel >= MAX_WANTED_LEVEL)
             {
-                case true:
-                    ToggleDispatchServices(false);
-                    break;
-                case false:
-                    ToggleDispatchServices(true);
-                    break;
+                switch (Game.Player.Character.IsOnFoot)
+                {
+                    case true:
+                        ToggleDispatchServices(false);
+                        break;
+                    case false:
+                        ToggleDispatchServices(true);
+                        break;
+                }
+            }
+            else
+            {
+                ToggleDispatchServices(true);
             }
         }
 
