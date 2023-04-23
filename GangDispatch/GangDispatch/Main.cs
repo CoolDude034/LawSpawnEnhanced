@@ -17,7 +17,7 @@ namespace GangDispatch
         bool isSniperSpawned = false;
 
         // Models
-        Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun };
+        Model[] assault_weapons = { WeaponHash.SMG, WeaponHash.CarbineRifle, WeaponHash.PumpShotgun, WeaponHash.AssaultShotgun };
 
         // Private variables
         int MAX_UNITS;
@@ -32,6 +32,12 @@ namespace GangDispatch
         string COP_MODEL_OVERRIDE;
         string COP_COUNTRY_MODEL_OVERRIDE;
         string ARMY_MODEL_OVERRIDE;
+
+        // Wanted Level Specific Overrides
+        bool ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES;
+        string COP_WL3;
+        string COP_WL4;
+        string COP_WL5;
 
         Vector3[] SniperSpawns =
         {
@@ -64,6 +70,9 @@ namespace GangDispatch
             new Vector3(-324.855164f, -619.5216f, 58.4729729f),
             new Vector3(-575.951965f, -1049.85181f, 32.37606f),
             new Vector3(-584.3051f, -1029.52808f, 32.3760948f),
+            new Vector3(-600f, -705.611633f, 47.22113f),
+            new Vector3(-575.318848f, -705.611633f, 47.22113f),
+            new Vector3(-731.774536f, -721.693848f, 43.9671555f),
             // ResDistr Rooftop Snipers
             new Vector3(-999.821167f, -1207.19641f, 14.3100691f),
             new Vector3(-1089.90051f, -1229.69678f, 13.4221287f),
@@ -86,6 +95,9 @@ namespace GangDispatch
             new Vector3(-55.56639f, 6503.51074f, 38.4160538f),
             new Vector3(-66.81067f, 6268.21045f, 46.7211342f),
             new Vector3(-439.295624f, 6015.17871f, 35.6452179f), // camper
+            // Vespucci PD
+            new Vector3(-1092.56323f, -811.278137f, 30.26501f),
+            new Vector3(-1074.167f, -846.214233f, 14.6220026f),
         };
 
         // There was no reason for this to return anything, so just return void
@@ -114,15 +126,20 @@ namespace GangDispatch
                 ped.Weapons.Give(weapon, 9999, true, true);
 
                 Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
-                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2); // stationary
+                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2); // CM_WillAdvance
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 22, true); // drag injured *comrades* to safety
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 28, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 60, true); // allow throw smoke grenades
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 41, true);
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 42, true);
 
                 groups.Add(ped);
             }
         }
 
+        // meet the sniper
         void SpawnSniper(Vector3 pos)
         {
             if (isSniperSpawned) return;
@@ -142,10 +159,12 @@ namespace GangDispatch
                 sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
 
                 Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
+                Function.Call(Hash.SET_PED_COMBAT_RANGE, sniper, 3);
                 Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
+                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 27, true);
 
                 isSniperSpawned = true;
             }
@@ -168,6 +187,11 @@ namespace GangDispatch
             COP_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_MODEL_OVERRIDE", "s_m_y_swat_01");
             ARMY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "ARMY_MODEL_OVERRIDE", "s_m_y_marine_03");
             COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", "s_m_y_swat_01");
+
+            ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES = Settings.GetValue<bool>("SETTINGS", "ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES", false);
+            COP_WL3 = Settings.GetValue<string>("SETTINGS", "COP_WL3", COP_MODEL_OVERRIDE);
+            COP_WL4 = Settings.GetValue<string>("SETTINGS", "COP_WL4", COP_MODEL_OVERRIDE);
+            COP_WL5 = Settings.GetValue<string>("SETTINGS", "COP_WL5", COP_MODEL_OVERRIDE);
 
             Tick += OnTick;
             Aborted += ScriptCleanup;
@@ -229,6 +253,19 @@ namespace GangDispatch
             else if (GetZoneType() == "DESERT")
             {
                 return new Model(COP_COUNTRY_MODEL_OVERRIDE);
+            }
+
+            if (ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES)
+            {
+                switch(Game.Player.WantedLevel)
+                {
+                    case 3:
+                        return new Model(COP_WL3);
+                    case 4:
+                        return new Model(COP_WL4);
+                    case 5:
+                        return new Model(COP_WL5);
+                }
             }
 
             return new Model(COP_MODEL_OVERRIDE);
