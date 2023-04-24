@@ -50,6 +50,9 @@ ENABLE_POLICE_HELICOPTER = false
 ; If true, pacific standard bank area can spawn 2 police cars with a swat van to simulate a 'besiege'. Default: true
 ENABLE_POLICE_BESIEGE = true
 
+; Minimum distance from Pacific Standard Bank to trigger besiege event. Default: 100f
+MIN_DISTANCE_FROM_BANK_FOR_POLICE_BESIEGE = 100f
+
 ; FORCE MODELS
 ; You can force peds spawned by the mod to use a specific model, good for addon peds
 ; If you want to change specific models per wanted level, set ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES to true in your .ini file.
