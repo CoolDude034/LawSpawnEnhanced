@@ -38,11 +38,17 @@ TIME_BETWEEN_SPAWNS = 80
 ; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
 
-; Force assaulting cops to engage in combat instead of going to your position
-ASSAULT_FORCE_KNOWS_WHERE_YOU_ARE = true
+; Override the sniper model
+OVERRIDE_SNIPER_MODEL = false
 
-; Distance around player's current location cops will search
-COP_SEARCH_DISTANCE = 400f
+; Specify what models police snipers will use, if not provided will spawn the model by zone (e.g city/country = swat, army base = soldiers)
+FORCED_SNIPER_MODEL = ""
+
+; If true, mod will skip DT_PoliceHelicopter so police helis will always get dispatched, not just in vehicle.
+ENABLE_POLICE_HELICOPTER = false
+
+; If true, pacific standard bank area can spawn 2 police cars with a swat van to simulate a 'besiege'. Default: true
+ENABLE_POLICE_BESIEGE = true
 
 ; FORCE MODELS
 ; You can force peds spawned by the mod to use a specific model, good for addon peds
