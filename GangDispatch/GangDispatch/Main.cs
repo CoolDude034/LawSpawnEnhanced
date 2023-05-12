@@ -24,6 +24,7 @@ namespace GangDispatch
         int MAX_UNITS;
         int MAX_WANTED_LEVEL;
         int TIME_BETWEEN_SPAWNS; // now a intvalue
+        int DIFFICULTY;
         float MIN_POLICE_SPAWN_DISTANCE;
         float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
         float MIN_POLICE_DESPAWN_RANGE;
@@ -33,6 +34,7 @@ namespace GangDispatch
         bool ENABLE_POLICE_BESIEGE;
         string COP_MODEL_OVERRIDE;
         string COP_COUNTRY_MODEL_OVERRIDE;
+        string CAYO_PERICO_GUARDS_OVERIRDE;
         string ARMY_MODEL_OVERRIDE;
 
         // Wanted Level Specific Overrides
@@ -106,6 +108,28 @@ namespace GangDispatch
             // Vespucci PD
             new Vector3(-1092.56323f, -811.278137f, 30.26501f),
             new Vector3(-1074.167f, -846.214233f, 14.6220026f),
+            // These we're from my old sniper mod, thought it would be cool to include these in this mod.
+            // Don't ask where these are located, i do not know. I guess explore LOL
+            new Vector3(-1041.913f, -2533.781f, 30.457f),
+            new Vector3(-1164.703f, -2446.158f, 36.041f),
+            new Vector3(-1080.765f, -2686.747f, 34.31932f),
+            new Vector3(-1110.262f, -2701.137f, 20.38633f),
+            new Vector3(-240.6813f, -197.2891f, 77.33955f),
+            new Vector3(-211.2993f, -260.3657f, 77.33955f),
+            new Vector3(-587.3903f, -724.0382f, 128.2443f),
+            new Vector3(-601.7745f, -934.7025f, 35.90825f),
+            new Vector3(386.6986f, -1015.355f, 57.88143f),
+            new Vector3(434.2407f, -928.4073f, 44.76479f),
+            new Vector3(-826.342f, -616.4815f, 95.19798f),
+            new Vector3(-773.8983f, -633.6242f, 95.19798f),
+            new Vector3(-354.7279f, -1044.218f, 72.88655f),
+            new Vector3(59.95131f, -1006.621f, 78.83146f),
+            new Vector3(23.24099f, -993.4604f, 82.38417f),
+            new Vector3(251.5045f, -1026.515f, 60.59642f),
+            new Vector3(279.6348f, -820.5026f, 71.63631f),
+            new Vector3(270.1202f, -832.9045f, 71.63603f),
+            new Vector3(363.6951f, -707.6724f, 84.61191f),
+            new Vector3(371.2715f, -1584.88f, 35.94881f),
         };
 
         // There was no reason for this to return anything, so just return void
@@ -114,7 +138,7 @@ namespace GangDispatch
             var model = GetModelByZone();
             if (!model.IsLoaded)
             {
-                model.Request();
+                model.Request(5);
             }
 
             if (model.IsInCdImage && model.IsValid)
@@ -124,6 +148,22 @@ namespace GangDispatch
 
                 var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
                 ped.Weapons.Give(weapon, 9999, true, true);
+
+                if (DIFFICULTY == 1)
+                {
+                    ped.Armor += 5;
+                }
+                else if (DIFFICULTY == 2)
+                {
+                    ped.CanWrithe = false;
+                    ped.Armor += 15;
+                }
+                else if (DIFFICULTY == 3)
+                {
+                    ped.CanWrithe = false;
+                    ped.CanSufferCriticalHits = false;
+                    ped.Armor += 20;
+                }
 
                 Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
                 Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2); // CM_WillAdvance
@@ -147,13 +187,14 @@ namespace GangDispatch
             var model = OVERRIDE_SNIPER_MODEL ? new Model(FORCED_SNIPER_MODEL) : GetModelByZone();
             if (!model.IsLoaded)
             {
-                model.Request();
+                model.Request(5);
             }
 
             if (model.IsInCdImage && model.IsValid)
             {
                 sniper = World.CreatePed(model, pos);
                 sniper.AlwaysKeepTask = true;
+                sniper.CanWrithe = false;
                 sniper.Task.FightAgainst(Game.Player.Character);
 
                 sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
@@ -187,7 +228,8 @@ namespace GangDispatch
             // civmale/civfemale pedtypes can cause in-fighting between them
             COP_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_MODEL_OVERRIDE", "s_m_y_swat_01");
             ARMY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "ARMY_MODEL_OVERRIDE", "s_m_y_marine_03");
-            COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", "s_m_y_swat_01");
+            COP_COUNTRY_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_COUNTRY_MODEL_OVERRIDE", COP_MODEL_OVERRIDE);
+            CAYO_PERICO_GUARDS_OVERIRDE = Settings.GetValue<string>("SETTINGS", "CAYO_PERICO_GUARDS_OVERIRDE", COP_MODEL_OVERRIDE);
 
             ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES = Settings.GetValue<bool>("SETTINGS", "ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES", false);
             COP_WL3 = Settings.GetValue<string>("SETTINGS", "COP_WL3", COP_MODEL_OVERRIDE);
@@ -197,18 +239,20 @@ namespace GangDispatch
             OVERRIDE_SNIPER_MODEL = Settings.GetValue<bool>("SETTINGS", "OVERRIDE_SNIPER_MODEL", false);
             FORCED_SNIPER_MODEL = Settings.GetValue<string>("SETTINGS", "FORCED_SNIPER_MODEL", COP_MODEL_OVERRIDE);
 
+            // Difficulty Values are 0-3
+            DIFFICULTY = Settings.GetValue<int>("SETTINGS", "DIFFICULTY", 1);
+            if (DIFFICULTY > 3 || DIFFICULTY < 0)
+            {
+                DIFFICULTY = 1;
+            }
+
             Tick += OnTick;
             Aborted += ScriptCleanup;
         }
 
         bool canSpawn()
         {
-            if (groups.Count >= MAX_UNITS)
-            {
-                return false;
-            }
-
-            return true;
+            return (groups.Count < MAX_UNITS);
         }
 
         bool isInSniperLocation()
@@ -223,6 +267,16 @@ namespace GangDispatch
             }
 
             return false;
+        }
+
+        bool isForcedToSidewalks()
+        {
+            if (GetZoneType() == "CAYO_PERICO")
+            {
+                return false;
+            }
+
+            return true;
         }
 
         Vector3 FindNearestSniperSpawn()
@@ -241,7 +295,7 @@ namespace GangDispatch
         {
             Vector3[] randomPos = { Game.Player.Character.ForwardVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.ForwardVector * -MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * MIN_POLICE_SPAWN_DISTANCE, Game.Player.Character.RightVector * -MIN_POLICE_SPAWN_DISTANCE };
             Vector3 newPos = randomPos[random.Next(0, randomPos.Length)];
-            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos);
+            Vector3 pos = World.GetSafeCoordForPed(Game.Player.Character.Position + newPos, sidewalk: isForcedToSidewalks());
 
             return pos;
         }
@@ -255,6 +309,10 @@ namespace GangDispatch
             else if (GetZoneType() == "DESERT")
             {
                 return new Model(COP_COUNTRY_MODEL_OVERRIDE);
+            }
+            else if (GetZoneType() == "CAYO_PERICO")
+            {
+                return new Model(CAYO_PERICO_GUARDS_OVERIRDE);
             }
 
             if (ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES)
@@ -283,8 +341,12 @@ namespace GangDispatch
             {
                 return "DESERT";
             }
+            else if (Function.Call<bool>(Hash.IS_ENTITY_IN_ZONE, Game.Player.Character, "IsHeistZone"))
+            {
+                return "CAYO_PERICO";
+            }
 
-            return "GENERAL";
+            return "DEFAULT";
         }
 
         void UpdateState()
@@ -343,6 +405,7 @@ namespace GangDispatch
                     {
                         if (isForced)
                         {
+                            ped.AlwaysKeepTask = false;
                             ped.MarkAsNoLongerNeeded();
                             groups.RemoveAt(i);
                         }
@@ -350,6 +413,7 @@ namespace GangDispatch
                         {
                             if (ped.IsDead || Game.Player.WantedLevel <= 0 || Game.Player.IsDead || World.GetDistance(ped.Position, Game.Player.Character.Position) > MIN_POLICE_DESPAWN_RANGE)
                             {
+                                ped.AlwaysKeepTask = false;
                                 ped.MarkAsNoLongerNeeded();
                                 groups.RemoveAt(i);
                             }
@@ -401,45 +465,55 @@ namespace GangDispatch
                 var policeCar1 = World.CreateVehicle(VehicleHash.Police, new Vector3(183.307083f, 193.525482f, 104.558456f));
                 var policeCar2 = World.CreateVehicle(VehicleHash.Police, new Vector3(184.620712f, 208.190582f, 104.73996f), heading: -2.87979341f);
                 var swatVan = World.CreateVehicle(VehicleHash.Riot, new Vector3(232.5081f, 278.516174f, 104.590385f), heading: -2.70526052f);
-                if (policeCar1.HasSiren)
+                var exists = policeCar1 != null && policeCar1.Exists() && policeCar2 != null && policeCar2.Exists() && swatVan != null && swatVan.Exists();
+                if (exists)
                 {
-                    policeCar1.IsSirenActive = true;
-                    policeCar1.IsSirenSilent = true;
+                    if (policeCar1.HasSiren)
+                    {
+                        policeCar1.IsSirenActive = true;
+                        policeCar1.IsSirenSilent = true;
+                    }
+                    if (policeCar2.HasSiren)
+                    {
+                        policeCar2.IsSirenActive = true;
+                        policeCar2.IsSirenSilent = true;
+                    }
+                    if (swatVan.HasSiren)
+                    {
+                        swatVan.IsSirenActive = true;
+                        swatVan.IsSirenSilent = true;
+                    }
+                    policeCar1.PlaceOnGround();
+                    policeCar2.PlaceOnGround();
+                    swatVan.PlaceOnGround();
+                    policeCar1.MarkAsNoLongerNeeded();
+                    policeCar2.MarkAsNoLongerNeeded();
+                    swatVan.MarkAsNoLongerNeeded();
                 }
-                if (policeCar2.HasSiren)
-                {
-                    policeCar2.IsSirenActive = true;
-                    policeCar2.IsSirenSilent = true;
-                }
-                if (swatVan.HasSiren)
-                {
-                    swatVan.IsSirenActive = true;
-                    swatVan.IsSirenSilent = true;
-                }
-                policeCar1.PlaceOnGround();
-                policeCar2.PlaceOnGround();
-                swatVan.PlaceOnGround();
-                policeCar1.MarkAsNoLongerNeeded();
-                policeCar2.MarkAsNoLongerNeeded();
-                swatVan.MarkAsNoLongerNeeded();
 
                 // Spawn Cops
                 var cop1 = World.CreatePed(PedHash.Cop01SMY, new Vector3(179.075043f, 206.704636f, 104.994026f), heading: -1.832596f);
-                cop1.Weapons.Give(WeaponHash.Pistol, 9999, true, true);
-                cop1.Task.FightAgainst(Game.Player.Character);
-                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, cop1, 0);
-                Function.Call(Hash.SET_PED_COMBAT_RANGE, cop1, 3);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, cop1, 46, true);
-                cop1.MarkAsNoLongerNeeded();
+                if (cop1 != null && cop1.Exists())
+                {
+                    cop1.Weapons.Give(WeaponHash.Pistol, 9999, true, true);
+                    cop1.Task.FightAgainst(Game.Player.Character);
+                    Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, cop1, 0);
+                    Function.Call(Hash.SET_PED_COMBAT_RANGE, cop1, 3);
+                    Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, cop1, 46, true);
+                    cop1.MarkAsNoLongerNeeded();
+                }
 
                 var sniper1 = World.CreatePed(PedHash.Swat01SMY, new Vector3(176.758759f, 198.06012f, 104.948158f), heading: -1.832596f);
-                sniper1.AlwaysKeepTask = true;
-                sniper1.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
-                sniper1.Task.FightAgainst(Game.Player.Character);
-                Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper1, 0);
-                Function.Call(Hash.SET_PED_COMBAT_RANGE, sniper1, 3);
-                Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper1, 46, true);
-                sniper1.MarkAsNoLongerNeeded();
+                if (sniper1 != null && sniper1.Exists())
+                {
+                    sniper1.AlwaysKeepTask = true;
+                    sniper1.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
+                    sniper1.Task.FightAgainst(Game.Player.Character);
+                    Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper1, 0);
+                    Function.Call(Hash.SET_PED_COMBAT_RANGE, sniper1, 3);
+                    Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper1, 46, true);
+                    sniper1.MarkAsNoLongerNeeded();
+                }
 
                 isPoliceBesiegeSpawned = true;
             }
@@ -484,7 +558,7 @@ namespace GangDispatch
             }
             Function.Call(Hash.ENABLE_DISPATCH_SERVICE, 4, toggle); // DT_SwatAutomobile
             Function.Call(Hash.ENABLE_DISPATCH_SERVICE, 6, toggle); // DT_PoliceRiders
-            Function.Call(Hash.ENABLE_DISPATCH_SERVICE, 8, toggle); // DT_PoliceRoadblock
+            //Function.Call(Hash.ENABLE_DISPATCH_SERVICE, 8, toggle); // DT_PoliceRoadblock
         }
     }
 }
