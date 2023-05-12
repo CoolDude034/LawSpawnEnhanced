@@ -35,6 +35,10 @@ MIN_POLICE_DESPAWN_RANGE = 600f
 ; Time it takes before spawning another cop (was float before, now an int)
 TIME_BETWEEN_SPAWNS = 80
 
+; Difficulty level (range of 0-3, default being 1)
+; Affects how much armor the peds will spawn with, and whether they can suffer critical hits or writhe
+DIFFICULTY = 2
+
 ; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
 
@@ -64,4 +68,6 @@ COP_MODEL_OVERRIDE = "s_m_y_swat_01"
 COP_COUNTRY_MODEL_OVERRIDE = "s_m_y_swat_01"
 ; Soldiers
 ARMY_MODEL_OVERRIDE = "s_m_y_marine_03"
+; Cayo Perico Guards (Defaults to s_m_y_swat)
+CAYO_PERICO_GUARDS_OVERIRDE = "s_m_y_swat_01"
 ```
