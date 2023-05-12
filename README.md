@@ -37,7 +37,7 @@ TIME_BETWEEN_SPAWNS = 80
 
 ; Difficulty level (range of 0-3, default being 1)
 ; Affects how much armor the peds will spawn with, and whether they can suffer critical hits or writhe
-DIFFICULTY = 2
+DIFFICULTY = 1
 
 ; Enable standard dispatch
 ENABLE_STANDARD_SPAWNS = false
