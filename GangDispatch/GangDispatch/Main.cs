@@ -132,6 +132,23 @@ namespace GangDispatch
             new Vector3(371.2715f, -1584.88f, 35.94881f),
         };
 
+        void AddHelmet(Ped ped)
+        {
+            Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 0, 0, true);
+        }
+
+        void SetComponent(Ped ped)
+        {
+            if (DIFFICULTY == 2 && Game.Player.WantedLevel == 5)
+            {
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, ped, 10, 0, 1, 0);
+            }
+            else if (DIFFICULTY == 3 && Game.Player.WantedLevel >= 4)
+            {
+                Function.Call(Hash.SET_PED_COMPONENT_VARIATION, ped, 10, 0, 1, 0);
+            }
+        }
+
         // There was no reason for this to return anything, so just return void
         void SpawnUnit(Vector3 pos)
         {
@@ -161,11 +178,11 @@ namespace GangDispatch
                 else if (DIFFICULTY == 3)
                 {
                     ped.CanWrithe = false;
-                    ped.CanSufferCriticalHits = false;
                     ped.Armor += 20;
                 }
 
-                Function.Call(Hash.SET_PED_PROP_INDEX, ped, 0, 1, 0, true);
+                AddHelmet(ped);
+                SetComponent(ped);
                 Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, ped, 2); // CM_WillAdvance
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 46, true); // BF_AlwaysFight
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, ped, 21, true); // chase target onfoot
@@ -199,9 +216,10 @@ namespace GangDispatch
 
                 sniper.Weapons.Give(WeaponHash.SniperRifle, 9999, true, true);
 
+                AddHelmet(sniper);
+                SetComponent(sniper);
                 Function.Call(Hash.SET_PED_COMBAT_MOVEMENT, sniper, 0);
                 Function.Call(Hash.SET_PED_COMBAT_RANGE, sniper, 3);
-                Function.Call(Hash.SET_PED_PROP_INDEX, sniper, 0, 1, 0, true);
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 46, true); // BF_AlwaysFight
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 21, false); // DONT chase target onfoot
                 Function.Call(Hash.SET_PED_COMBAT_ATTRIBUTES, sniper, 22, false); // DONT drag injured *comrades* to safety
