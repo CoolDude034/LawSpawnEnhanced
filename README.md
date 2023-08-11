@@ -35,6 +35,15 @@ MIN_POLICE_DESPAWN_RANGE = 600f
 ; Time it takes before spawning another cop (was float before, now an int)
 TIME_BETWEEN_SPAWNS = 80
 
+; Initial spawn delay, default = 120
+INITIAL_SPAWN_DELAY = 120
+
+; What loadout the spawned peds will use
+LOADOUT_SET = "LOADOUT_SWAT"
+
+; Enable old hard-coded weapon system
+ENABLE_OLD_WEAPON_SYSTEM = false
+
 ; Difficulty level (range of 0-3, default being 1)
 ; Affects how much armor the peds will spawn with, and whether they can suffer critical hits or writhe
 DIFFICULTY = 1
