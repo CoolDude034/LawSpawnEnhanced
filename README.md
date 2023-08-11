@@ -12,7 +12,7 @@ Cops spawned trough scenarios or popcycle aren't touched.
 * Spawned units will utilize tactics like chasing you down and carrying their wounded allies to safety.
 * You can configure some values of the mod by creating a .ini file with the same name as the DLL. To know which values you can use, take a look underneath me.
 
-# Configuration:
+# Available Configuration Options:
 
 ```
 [SETTINGS]
