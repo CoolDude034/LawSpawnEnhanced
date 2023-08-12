@@ -15,6 +15,7 @@ namespace GangDispatch
         Ped sniper;
         bool isSniperSpawned = false;
         bool isPoliceBesiegeSpawned = false;
+        bool canSpawnPeds = false;
         Vector3 policeBesiegeLocation = new Vector3(204.728027f, 201.1926f, 104.5698f);
 
         // Models
@@ -25,6 +26,7 @@ namespace GangDispatch
         int MAX_WANTED_LEVEL;
         int TIME_BETWEEN_SPAWNS; // now a intvalue
         int DIFFICULTY;
+        int INITIAL_SPAWN_DELAY;
         float MIN_POLICE_SPAWN_DISTANCE;
         float MIN_DISTANCE_FROM_SNIPER_SPAWNS;
         float MIN_POLICE_DESPAWN_RANGE;
@@ -32,10 +34,13 @@ namespace GangDispatch
         bool ENABLE_STANDARD_SPAWNS;
         bool ENABLE_POLICE_HELICOPTER;
         bool ENABLE_POLICE_BESIEGE;
+        bool ENABLE_OLD_WEAPON_SYSTEM;
         string COP_MODEL_OVERRIDE;
         string COP_COUNTRY_MODEL_OVERRIDE;
         string CAYO_PERICO_GUARDS_OVERIRDE;
         string ARMY_MODEL_OVERRIDE;
+
+        string LOADOUT_SET;
 
         // Wanted Level Specific Overrides
         bool ENABLE_WANTED_LEVEL_SPECIFIC_OVERRIDES;
@@ -163,8 +168,16 @@ namespace GangDispatch
                 var ped = World.CreatePed(model, pos);
                 ped.Task.FightAgainst(Game.Player.Character);
 
-                var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
-                ped.Weapons.Give(weapon, 9999, true, true);
+                if (ENABLE_OLD_WEAPON_SYSTEM)
+                {
+                    var weapon = assault_weapons[random.Next(0, assault_weapons.Length)];
+                    ped.Weapons.Give(weapon, 9999, true, true);
+                }
+                else
+                {
+                    var hash = Function.Call<int>(Hash.GET_HASH_KEY, LOADOUT_SET);
+                    Function.Call(Hash.GIVE_LOADOUT_TO_PED, ped, hash);
+                }
 
                 if (DIFFICULTY == 1)
                 {
@@ -172,12 +185,10 @@ namespace GangDispatch
                 }
                 else if (DIFFICULTY == 2)
                 {
-                    ped.CanWrithe = false;
                     ped.Armor += 15;
                 }
                 else if (DIFFICULTY == 3)
                 {
-                    ped.CanWrithe = false;
                     ped.Armor += 20;
                 }
 
@@ -241,7 +252,10 @@ namespace GangDispatch
             ENABLE_STANDARD_SPAWNS = Settings.GetValue<bool>("SETTINGS", "ENABLE_STANDARD_SPAWNS", false);
             ENABLE_POLICE_HELICOPTER = Settings.GetValue<bool>("SETTINGS", "ENABLE_POLICE_HELICOPTER", false);
             ENABLE_POLICE_BESIEGE = Settings.GetValue<bool>("SETTINGS", "ENABLE_POLICE_BESIEGE", true);
+            ENABLE_OLD_WEAPON_SYSTEM = Settings.GetValue<bool>("SETTINGS", "ENABLE_OLD_WEAPON_SYSTEM", false);
             MIN_DISTANCE_FROM_BANK_FOR_POLICE_BESIEGE = Settings.GetValue<float>("SETTINGS", "MIN_DISTANCE_FROM_BANK_FOR_POLICE_BESIEGE", 100f);
+            INITIAL_SPAWN_DELAY = Settings.GetValue<int>("SETTINGS", "INITIAL_SPAWN_DELAY", 120);
+            LOADOUT_SET = Settings.GetValue<string>("SETTINGS", "LOADOUT_SET", "LOADOUT_SWAT");
             // Updated code to look for modelnames instead of pedhashes, note this means that you need to update your config otherwise it will fallback to swat
             // civmale/civfemale pedtypes can cause in-fighting between them
             COP_MODEL_OVERRIDE = Settings.GetValue<string>("SETTINGS", "COP_MODEL_OVERRIDE", "s_m_y_swat_01");
@@ -369,9 +383,13 @@ namespace GangDispatch
 
         void UpdateState()
         {
-            if (ENABLE_STANDARD_SPAWNS) return;
             if (Game.Player.WantedLevel >= MAX_WANTED_LEVEL)
             {
+                if (!canSpawnPeds && Game.GameTime % INITIAL_SPAWN_DELAY == 0)
+                {
+                    canSpawnPeds = true;
+                }
+
                 switch (Game.Player.Character.IsOnFoot)
                 {
                     case true:
@@ -384,6 +402,11 @@ namespace GangDispatch
             }
             else
             {
+                // Reset canSpawnPeds value back to false
+                if (Game.Player.WantedLevel <= 0)
+                {
+                    canSpawnPeds = false;
+                }
                 ToggleDispatchServices(true);
             }
         }
@@ -399,7 +422,7 @@ namespace GangDispatch
 
         void UpdateGroups()
         {
-            if (Game.Player.WantedLevel >= MAX_WANTED_LEVEL && canSpawn())
+            if (Game.Player.WantedLevel >= MAX_WANTED_LEVEL && canSpawn() && canSpawnPeds)
             {
                 bool IS_SEEN_BY_COPS = Function.Call<bool>(Hash.IS_WANTED_AND_HAS_BEEN_SEEN_BY_COPS, Game.Player);
                 if (Game.Player.Character.IsOnFoot && IS_SEEN_BY_COPS)
@@ -569,6 +592,7 @@ namespace GangDispatch
 
         void ToggleDispatchServices(bool toggle)
         {
+            if (ENABLE_STANDARD_SPAWNS) return;
             Function.Call(Hash.ENABLE_DISPATCH_SERVICE, 1, toggle); // DT_PoliceAutomobile
             if (!ENABLE_POLICE_HELICOPTER)
             {
