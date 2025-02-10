@@ -1,0 +1,9 @@
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\obj\Release\GangDispatch.csproj.AssemblyReference.cache
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\obj\Release\GangDispatch.csproj.CoreCompileInputs.cache
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\bin\Release\GangDispatch.dll
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\bin\Release\GangDispatch.pdb
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\bin\Release\ScriptHookVDotNet3.dll
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\bin\Release\ScriptHookVDotNet3.xml
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\obj\Release\GangDisp.FAC3F7CB.Up2Date
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\obj\Release\GangDispatch.dll
+C:\Users\Utku\source\repos\GangDispatch\GangDispatch\obj\Release\GangDispatch.pdb

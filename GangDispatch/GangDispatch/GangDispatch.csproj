@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ScriptHookVDotNet3">
-      <HintPath>D:\GTA\Grand Theft Auto V\ScriptHookVDotNet3.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\ScriptHookVDotNet3.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
